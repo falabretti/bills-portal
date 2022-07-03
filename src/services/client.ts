@@ -53,6 +53,16 @@ export type Log = {
     date: string
 }
 
+export type Balance = {
+    value: number
+}
+
+export type MonthBalance = {
+    value: number,
+    periodFrom: string,
+    periodTo: string
+}
+
 export type ApiError = {
     status: string,
     error: string
@@ -79,7 +89,9 @@ const endpoints = {
     createBudget: host + '/budget',
     updateBudget: host + '/budget',
     deleteBudget: host + '/budget/:id',
-    getLogs: host + '/audit'
+    getLogs: host + '/audit',
+    getBalance: host + '/transaction/balance',
+    getMonthBalance: host + '/transaction/balance/month',
 }
 
 export async function getUser(email: string): Promise<AxiosResponse<User>> {
@@ -190,6 +202,16 @@ export async function deleteBudget(userId: number, budgetId: number): Promise<Ax
 export async function getLogs(userId: number): Promise<AxiosResponse<Log[]>> {
     const headers = getHeaders(userId);
     return await axios.get(endpoints.getLogs, { headers });
+}
+
+export async function getBalance(userId: number): Promise<AxiosResponse<Balance>> {
+    const headers = getHeaders(userId);
+    return await axios.get(endpoints.getBalance, { headers });
+}
+
+export async function getMonthBalance(userId: number): Promise<AxiosResponse<MonthBalance>> {
+    const headers = getHeaders(userId);
+    return await axios.get(endpoints.getMonthBalance, { headers });
 }
 
 function getHeaders(userId: number) {
