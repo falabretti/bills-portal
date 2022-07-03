@@ -5,6 +5,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import FilterListIcon from '@material-ui/icons/FilterList';
+import SaveIcon from '@material-ui/icons/Save';
 
 type TableContainerProps = {
     children: ReactNode
@@ -25,6 +26,7 @@ type OnAddFunction = () => void
 type OnEditFunction<Type> = (item: Type) => void
 type OnDeleteFunction<Type> = (item: Type) => void
 type OnFormatFunction<Type> = (item: Type, propery: string) => string | ReactNode | undefined
+type OnExportFunction = () => void
 
 type UseTableArgs<Type> = {
     records: Type[],
@@ -34,7 +36,8 @@ type UseTableArgs<Type> = {
     onEdit?: OnEditFunction<Type>,
     onDelete?: OnDeleteFunction<Type>,
     onFormat?: OnFormatFunction<Type>,
-    onFilter?: () => void
+    onFilter?: () => void,
+    onExport?: OnExportFunction
 }
 
 const useStyles = makeStyles({
@@ -47,7 +50,8 @@ const useStyles = makeStyles({
     },
     tableFooter: {
         display: 'flex',
-        justifyContent: 'flex-end'
+        justifyContent: 'space-between',
+        flexFlow: 'row-reverse'
     },
     tableContainer: {
         maxHeight: '80vh'
@@ -56,7 +60,7 @@ const useStyles = makeStyles({
 
 export default function useTable<Type extends Record<string, string | number>>(args: UseTableArgs<Type>): UseTableType {
 
-    const { records, headCells, title, onAdd, onEdit, onDelete, onFormat, onFilter } = args;
+    const { records, headCells, title, onAdd, onEdit, onDelete, onFormat, onFilter, onExport } = args;
 
     const classes = useStyles();
     const withActions = Boolean(onEdit || onDelete);
@@ -76,9 +80,10 @@ export default function useTable<Type extends Record<string, string | number>>(a
                     {props.children}
                 </Table>
                 {
-                    onAdd && <Toolbar className={classes.tableFooter}>
-                        <Button variant="outlined" color="primary" startIcon={<AddIcon />} onClick={onAdd}>Adicionar</Button>
-                    </Toolbar>
+                    (onAdd || onExport) && (<Toolbar className={classes.tableFooter}>
+                        {onAdd && <Button variant="outlined" color="primary" startIcon={<AddIcon />} onClick={onAdd}>Adicionar</Button>}
+                        {onExport && <Button variant="outlined" color="primary" startIcon={<SaveIcon />} onClick={onExport}>Exportar</Button>}
+                    </Toolbar>)
                 }
             </MuiTableContainer>
         );

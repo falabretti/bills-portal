@@ -14,6 +14,7 @@ import { AxiosError } from 'axios';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import TemporarySidebar from '../../components/TemporarySidebar';
 import AccountFilterForm, { AccountFilterFields } from './AccountFilterForm';
+import { savePdf } from '../../utils/pdfGenerator';
 
 const useStyles = makeStyles(theme => ({
     title: {
@@ -61,7 +62,8 @@ export default function Accounts(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
-        onFilter: handleFilter
+        onFilter: handleFilter,
+        onExport: handleExport
     });
 
     function handleFilter() {
@@ -158,6 +160,12 @@ export default function Accounts(): ReactElement {
                 notify({ setNotification, ...buildErrorMessage(error, 'Erro ao carregar contas!') });
                 console.error(error);
             });
+    }
+
+    function handleExport() {
+        const headerKeys = headCells.map(cell => cell.text);
+        const pdfAccounts = accounts.map(acc => ([acc.name, toCurrency(acc.balance)]));
+        savePdf('Suas Contas', headerKeys, pdfAccounts);
     }
 
     useEffect(() => {

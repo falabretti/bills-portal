@@ -12,6 +12,7 @@ import { UserContext, UserContextType } from '../../contexts/UserContext';
 import useTable from '../../hooks/useTable';
 import { ApiError, Category, createCategory, deleteCategory, getCategories, updateCategory } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
+import { savePdf } from '../../utils/pdfGenerator';
 import CategoriesForm, { CategoryFields } from './CategoriesForm';
 import CategoryFilterForm, { CategoryFilterFields } from './CategoryFilterForm';
 
@@ -61,7 +62,8 @@ export default function Categories(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
-        onFilter: handleFilter
+        onFilter: handleFilter,
+        onExport: handleExport
     });
 
 
@@ -159,6 +161,12 @@ export default function Categories(): ReactElement {
                 notify({ setNotification, ...buildErrorMessage(error, 'Erro ao carregar categorias!') });
                 console.error(error);
             });
+    }
+
+    function handleExport() {
+        const headerKeys = headCells.map(cell => cell.text);
+        const pdfCategories = categories.map(cat => ([cat.name, cat.type === 'INCOME' ? 'Receita' : 'Despesa']));
+        savePdf('Suas Categorias', headerKeys, pdfCategories);
     }
 
     useEffect(() => {

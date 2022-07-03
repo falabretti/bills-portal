@@ -13,6 +13,7 @@ import useTable from '../../hooks/useTable';
 import { Account, ApiError, Category, createTransaction, deleteTransaction, getAccounts, getCategories, getTransactions, Transaction, updateTransaction } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import { toCurrency, toLocaleDateString } from '../../utils/formatUtils';
+import { savePdf } from '../../utils/pdfGenerator';
 import TransactionFilterForm, { TransactionFilterFields } from './TransactionFilterForm';
 import TransactionsForm, { TransactionFields } from './TransactionsForm';
 
@@ -80,7 +81,8 @@ export default function Transactions(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
-        onFilter: handleFilter
+        onFilter: handleFilter,
+        onExport: handleExport
     });
 
     function handleFilter() {
@@ -232,6 +234,19 @@ export default function Transactions(): ReactElement {
                 notify({ setNotification, ...buildErrorMessage(error, 'Erro ao carregar dados!') });
                 console.error(error);
             });
+    }
+
+    function handleExport() {
+        const headerKeys = headCells.map(cell => cell.text);
+        const pdfTransactions = transactions.map(tra => ([
+            toLocaleDateString(tra.transactionDate),
+            tra.description,
+            tra.type === 'INCOME' ? 'Receita' : 'Despesa',
+            categories[tra.categoryId]?.name,
+            accounts[tra.accountId]?.name,
+            toCurrency(tra.type === 'EXPENSE' ? -tra.value : tra.value)
+        ]));
+        savePdf('Suas Transações', headerKeys, pdfTransactions);
     }
 
     useEffect(() => {

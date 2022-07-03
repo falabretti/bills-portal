@@ -11,6 +11,7 @@ import useTable from '../../hooks/useTable';
 import { ApiError, Budget, Category, createBudget, deleteBudget, getBudgets, getCategories, updateBudget } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import { toCurrency, toLocaleMonthYearString } from '../../utils/formatUtils';
+import { savePdf } from '../../utils/pdfGenerator';
 import BudgetsFilterForm, { BudgetsFilterFields } from './BudgetsFilterForm';
 import BudgetsForm, { BudgetFields } from './BudgetsForm';
 
@@ -80,7 +81,8 @@ export default function Budgets(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
-        onFilter: handleFilter
+        onFilter: handleFilter,
+        onExport: handleExport
     });
 
     function handleFilter() {
@@ -229,6 +231,19 @@ export default function Budgets(): ReactElement {
                 console.error(error);
             });
     }
+
+    function handleExport() {
+        const headerKeys = headCells.map(cell => cell.text);
+        const pdfBudgets = budgets.map(budget => ([
+            categories[budget.categoryId]?.name,
+            budget.type === 'INCOME' ? 'Receita' : 'Despesa',
+            toLocaleMonthYearString(budget.month),
+            toCurrency(budget.value),
+            toCurrency(budget.usage),
+            toCurrency(budget.value - budget.usage)
+        ]));
+        savePdf('Seus Orçamentos', headerKeys, pdfBudgets);
+    }   
 
     useEffect(() => {
         loadBudgets();
