@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { UserProvider } from '../contexts/UserContext';
 import AccountsPage from '../pages/accounts/AccountsPage';
+import BudgetsPage from '../pages/budgets/BudgetsPage';
 import CategoriesPage from '../pages/categories/CategoriesPage';
 import HistoryPage from '../pages/history/HistoryPage';
 import HomePage from '../pages/home/HomePage';
