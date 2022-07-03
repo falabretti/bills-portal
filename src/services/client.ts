@@ -164,7 +164,7 @@ export async function deleteTransaction(userId: number, transactionId: number): 
     return await axios.delete(endpoint, { headers });
 }
 
-export async function getBudgets(userId: number, params?: Record<string, string>): Promise<AxiosResponse<Budget[]>> {
+export async function getBudgets(userId: number, params?: Record<string, string | number | undefined>): Promise<AxiosResponse<Budget[]>> {
     const headers = getHeaders(userId);
     return await axios.get(endpoints.getBudgets, { headers, params });
 }

@@ -7,11 +7,13 @@ import { useContext } from 'react';
 import ConfirmDialog, { ConfirmDialogState } from '../../components/ConfirmDialog';
 import Notification, { NotificationState } from '../../components/Notification';
 import PopUp from '../../components/PopUp';
+import TemporarySidebar from '../../components/TemporarySidebar';
 import { UserContext, UserContextType } from '../../contexts/UserContext';
 import useTable from '../../hooks/useTable';
 import { ApiError, Category, createCategory, deleteCategory, getCategories, updateCategory } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import CategoriesForm, { CategoryFields } from './CategoriesForm';
+import CategoryFilterForm, { CategoryFilterFields } from './CategoryFilterForm';
 
 const useStyles = makeStyles(theme => ({
     title: {
@@ -48,6 +50,8 @@ export default function Categories(): ReactElement {
     const [editRecord, setEditRecord] = useState<Category | undefined>(undefined);
     const [notification, setNotification] = useState<NotificationState>({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false, title: '', onConfirm: () => null });
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [filters, setFilters] = useState<CategoryFilterFields>();
 
     const { TableContainer, TableHead, TableBody } = useTable({
         records: categories,
@@ -57,7 +61,18 @@ export default function Categories(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
+        onFilter: handleFilter
     });
+
+
+    function handleFilter() {
+        setFilterOpen(true);
+    }
+
+    function handleSaveFilters(filters: CategoryFilterFields) {
+        setFilters(filters);
+        setFilterOpen(false);
+    }
 
     function showDialog(title: string, subtitle: string, onConfirm: () => void) {
         setConfirmDialog({
@@ -137,7 +152,7 @@ export default function Categories(): ReactElement {
     }
 
     function loadCategories() {
-        user && getCategories(user.id)
+        user && getCategories(user.id, filters)
             .then(res => {
                 setCategories(res.data);
             }).catch((error: AxiosError<ApiError>) => {
@@ -152,7 +167,7 @@ export default function Categories(): ReactElement {
 
     useEffect(() => {
         loadCategories();
-    }, []);
+    }, [filters]);
 
     return (
         <>
@@ -165,6 +180,9 @@ export default function Categories(): ReactElement {
             </PopUp>
             <Notification state={notification} setState={setNotification} />
             <ConfirmDialog state={confirmDialog} setState={setConfirmDialog} />
+            <TemporarySidebar open={filterOpen} onClose={() => setFilterOpen(false)} >
+                <CategoryFilterForm onSubmit={handleSaveFilters} />
+            </TemporarySidebar>
         </>
     );
 }

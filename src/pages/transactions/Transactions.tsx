@@ -7,11 +7,13 @@ import { useContext } from 'react';
 import ConfirmDialog, { ConfirmDialogState } from '../../components/ConfirmDialog';
 import Notification, { NotificationState } from '../../components/Notification';
 import PopUp from '../../components/PopUp';
+import TemporarySidebar from '../../components/TemporarySidebar';
 import { UserContext, UserContextType } from '../../contexts/UserContext';
 import useTable from '../../hooks/useTable';
 import { Account, ApiError, Category, createTransaction, deleteTransaction, getAccounts, getCategories, getTransactions, Transaction, updateTransaction } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import { toCurrency, toLocaleDateString } from '../../utils/formatUtils';
+import TransactionFilterForm, { TransactionFilterFields } from './TransactionFilterForm';
 import TransactionsForm, { TransactionFields } from './TransactionsForm';
 
 const useStyles = makeStyles(theme => ({
@@ -67,6 +69,8 @@ export default function Transactions(): ReactElement {
     const [editRecord, setEditRecord] = useState<Transaction | undefined>(undefined);
     const [notification, setNotification] = useState<NotificationState>({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false, title: '', onConfirm: () => null });
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [filters, setFilters] = useState<TransactionFilterFields>();
 
     const { TableContainer, TableHead, TableBody } = useTable({
         records: transactions,
@@ -75,8 +79,18 @@ export default function Transactions(): ReactElement {
         onAdd: handleAdd,
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onFormat: handleFormat
+        onFormat: handleFormat,
+        onFilter: handleFilter
     });
+
+    function handleFilter() {
+        setFilterOpen(true);
+    }
+
+    function handleSaveFilters(filters: TransactionFilterFields) {
+        setFilters(filters);
+        setFilterOpen(false);
+    }
 
     function showDialog(title: string, subtitle: string, onConfirm: () => void) {
         setConfirmDialog({
@@ -183,7 +197,7 @@ export default function Transactions(): ReactElement {
     }
 
     function loadTransactions() {
-        user && getTransactions(user.id)
+        user && getTransactions(user.id, filters)
             .then(res => {
                 setTransactions(res.data);
             }).catch((error: AxiosError<ApiError>) => {
@@ -228,7 +242,7 @@ export default function Transactions(): ReactElement {
 
     useEffect(() => {
         loadTransactions();
-    }, []);
+    }, [filters]);
 
     return (
         <>
@@ -241,6 +255,9 @@ export default function Transactions(): ReactElement {
             </PopUp>
             <Notification state={notification} setState={setNotification} />
             <ConfirmDialog state={confirmDialog} setState={setConfirmDialog} />
+            <TemporarySidebar open={filterOpen} onClose={() => setFilterOpen(false)} >
+                <TransactionFilterForm onSubmit={handleSaveFilters} accounts={Object.values(accounts)} categories={Object.values(categories)} />
+            </TemporarySidebar>
         </>
     );
 }

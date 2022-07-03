@@ -4,12 +4,14 @@ import React, { ReactElement, ReactNode, useContext, useEffect, useState } from 
 import ConfirmDialog, { ConfirmDialogState } from '../../components/ConfirmDialog';
 import Notification, { NotificationState } from '../../components/Notification';
 import PopUp from '../../components/PopUp';
+import TemporarySidebar from '../../components/TemporarySidebar';
 import { UserContext, UserContextType } from '../../contexts/UserContext';
 
 import useTable from '../../hooks/useTable';
 import { ApiError, Budget, Category, createBudget, deleteBudget, getBudgets, getCategories, updateBudget } from '../../services/client';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
 import { toCurrency, toLocaleMonthYearString } from '../../utils/formatUtils';
+import BudgetsFilterForm, { BudgetsFilterFields } from './BudgetsFilterForm';
 import BudgetsForm, { BudgetFields } from './BudgetsForm';
 
 const useStyles = makeStyles(() => ({
@@ -19,6 +21,9 @@ const useStyles = makeStyles(() => ({
     },
     negativeValue: {
         color: '#CE6060',
+        fontWeight: 500
+    },
+    bold: {
         fontWeight: 500
     },
     displayNone: {
@@ -64,6 +69,8 @@ export default function Budgets(): ReactElement {
     const [editRecord, setEditRecord] = useState<Budget | undefined>(undefined);
     const [notification, setNotification] = useState<NotificationState>({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false, title: '', onConfirm: () => null });
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [filters, setFilters] = useState<BudgetsFilterFields>();
 
     const { TableContainer, TableBody, TableHead } = useTable({
         records: budgets,
@@ -72,8 +79,18 @@ export default function Budgets(): ReactElement {
         onAdd: handleAdd,
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onFormat: handleFormat
+        onFormat: handleFormat,
+        onFilter: handleFilter
     });
+
+    function handleFilter() {
+        setFilterOpen(true);
+    }
+
+    function handleSaveFilters(filters: BudgetsFilterFields) {
+        setFilters(filters);
+        setFilterOpen(false);
+    }
 
     function showDialog(title: string, subtitle: string, onConfirm: () => void) {
         setConfirmDialog({
@@ -182,7 +199,7 @@ export default function Budgets(): ReactElement {
         if (property === 'remaining') {
             const difference = budget.value - budget.usage
             return (
-                <Typography variant="body2">
+                <Typography variant="body2" className={classes.bold}>
                     {toCurrency(difference)}
                 </Typography>
             );
@@ -190,7 +207,7 @@ export default function Budgets(): ReactElement {
     }
 
     function loadBudgets() {
-        user && getBudgets(user.id)
+        user && getBudgets(user.id, filters)
             .then(res => {
                 setBudgets(res.data);
             }).catch((error: AxiosError<ApiError>) => {
@@ -218,6 +235,10 @@ export default function Budgets(): ReactElement {
         loadCategories();
     }, [])
 
+    useEffect(() => {
+        loadBudgets();
+    }, [filters])
+
     return (
         <>
             <TableContainer>
@@ -229,6 +250,9 @@ export default function Budgets(): ReactElement {
             </PopUp>
             <Notification state={notification} setState={setNotification} />
             <ConfirmDialog state={confirmDialog} setState={setConfirmDialog} />
+            <TemporarySidebar open={filterOpen} onClose={() => setFilterOpen(false)}>
+                <BudgetsFilterForm onSubmit={handleSaveFilters} categories={Object.values(categories)} />
+            </TemporarySidebar>
         </>
     );
 }

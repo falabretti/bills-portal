@@ -12,6 +12,8 @@ import ConfirmDialog, { ConfirmDialogState } from '../../components/ConfirmDialo
 import { toCurrency } from '../../utils/formatUtils';
 import { AxiosError } from 'axios';
 import { buildErrorMessage, notify } from '../../utils/componentUtils';
+import TemporarySidebar from '../../components/TemporarySidebar';
+import AccountFilterForm, { AccountFilterFields } from './AccountFilterForm';
 
 const useStyles = makeStyles(theme => ({
     title: {
@@ -48,6 +50,8 @@ export default function Accounts(): ReactElement {
     const [editRecord, setEditRecord] = useState<Account | undefined>(undefined);
     const [notification, setNotification] = useState<NotificationState>({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false, title: '', onConfirm: () => null });
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [filters, setFilters] = useState<AccountFilterFields>();
 
     const { TableContainer, TableHead, TableBody } = useTable({
         records: accounts,
@@ -57,7 +61,17 @@ export default function Accounts(): ReactElement {
         onEdit: handleEdit,
         onDelete: handleDelete,
         onFormat: handleFormat,
+        onFilter: handleFilter
     });
+
+    function handleFilter() {
+        setFilterOpen(true);
+    }
+
+    function handleSaveFilters(filters: AccountFilterFields) {
+        setFilters(filters);
+        setFilterOpen(false);
+    }
 
     function showDialog(title: string, subtitle: string, onConfirm: () => void) {
         setConfirmDialog({
@@ -137,7 +151,7 @@ export default function Accounts(): ReactElement {
     }
 
     function loadAccounts() {
-        user && getAccounts(user.id)
+        user && getAccounts(user.id, filters)
             .then(res => {
                 setAccounts(res.data);
             }).catch((error: AxiosError<ApiError>) => {
@@ -152,7 +166,7 @@ export default function Accounts(): ReactElement {
 
     useEffect(() => {
         loadAccounts();
-    }, []);
+    }, [filters]);
 
     return (
         <>
@@ -165,6 +179,9 @@ export default function Accounts(): ReactElement {
             </PopUp>
             <Notification state={notification} setState={setNotification} />
             <ConfirmDialog state={confirmDialog} setState={setConfirmDialog} />
+            <TemporarySidebar open={filterOpen} onClose={() => setFilterOpen(false)} >
+                <AccountFilterForm onSubmit={handleSaveFilters} />
+            </TemporarySidebar>
         </>
     );
 }
