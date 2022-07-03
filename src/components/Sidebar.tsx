@@ -5,6 +5,7 @@ import LabelIcon from '@material-ui/icons/Label';
 import AccountBalanceWalletIcon from '@material-ui/icons/AccountBalanceWallet';
 import HistoryIcon from '@material-ui/icons/History';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const useStyles = makeStyles({
@@ -47,6 +48,11 @@ export default function Sidebar(): ReactElement {
             path: '/categories',
             text: 'Categorias',
             icon: LabelIcon
+        },
+        {
+            path: '/budgets',
+            text: 'Orçamentos',
+            icon: AttachMoneyIcon
         },
         {
             path: '/history',

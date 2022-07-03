@@ -49,6 +49,9 @@ export default function App(): ReactElement {
                         <SecureRoute path="/history">
                             <HistoryPage />
                         </SecureRoute>
+                        <SecureRoute path="/budgets">
+                            <BudgetsPage />
+                        </SecureRoute>
                         <Route path="/login">
                             <Login />
                         </Route>
